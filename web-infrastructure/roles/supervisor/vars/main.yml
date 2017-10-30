@@ -1,0 +1,2 @@
+---
+supervisord_conf_location: /etc/supervisor/supervisord.conf

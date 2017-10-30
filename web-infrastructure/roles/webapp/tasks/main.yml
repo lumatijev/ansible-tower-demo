@@ -1,0 +1,50 @@
+---
+- name: Create required folder structure
+  become: yes
+  file:
+    path: "/var/www/{{ application_domain }}"
+    state: directory
+    mode: 0750
+
+- name: Extract application
+  become: yes
+  unarchive:
+    src: webapp.tar.gz
+    dest: "/var/www/{{ application_domain }}"
+    mode: "o-rwx"
+    keep_newer: yes
+    creates: "/var/www/{{ application_domain }}/{{ application_name }}"
+
+- name: Build application
+  become: yes
+  shell:
+    cmd: "/usr/local/go/bin/go build {{ application_name|quote }}"
+    chdir: "/var/www/{{ application_domain }}"
+    creates: "/var/www/{{ application_domain }}/{{ application_binary }}"
+
+- name: Set ownership for the folder structure (Ubuntu OS distribution)
+  become: yes
+  file:
+    path: /var/www
+    owner: www-data
+    group: www-data
+    recurse: yes
+  when: ansible_distribution == "Ubuntu"
+
+- name: Set ownership for the folder structure (Red Hat OS family)
+  become: yes
+  file:
+    path: /var/www
+    owner: nginx
+    group: nginx
+    setype: httpd_sys_content_t
+    recurse: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Set "httpd_can_network_connect" flag on and keep it persistent across reboots (Red Hat OS family)
+  become: yes
+  seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+  when: ansible_os_family == "RedHat"

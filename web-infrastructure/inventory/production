@@ -1,0 +1,9 @@
+loadbalancer-centos
+
+[webservers]
+webserver-ubuntu-1
+webserver-ubuntu-2
+webserver-ubuntu-3
+webserver-centos-1
+webserver-centos-2
+webserver-centos-3

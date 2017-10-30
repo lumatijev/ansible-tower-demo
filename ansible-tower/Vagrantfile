@@ -1,0 +1,29 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ENV["LC_ALL"] = "en_US.UTF-8"
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "ansible/tower"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  config.vm.define "ansible-tower" do |at|
+    at.vm.hostname = "ansible-tower"
+
+    at.vm.provider "libvirt" do |v|
+      v.driver = "kvm"
+      v.default_prefix = "demo"
+      v.memory = 2048
+      v.cpus = 2
+    end
+
+    at.vm.provision "ansible" do |a|
+      a.playbook = "playbook.yml"
+      a.extra_vars = {
+        timezone: "Europe/Zagreb",
+        private_key_file: "id_rsa",
+        public_key_file: "id_rsa.pub"
+      }
+    end
+  end
+end

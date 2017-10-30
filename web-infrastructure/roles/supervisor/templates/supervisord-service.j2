@@ -1,0 +1,15 @@
+# supervisord service for systemd
+[Unit]
+Description=Supervisor daemon
+
+[Service]
+Type=forking
+ExecStart=/bin/supervisord -c {{ supervisord_conf_location|quote }}
+ExecStop=/bin/supervisorctl -c {{ supervisord_conf_location|quote }} $OPTIONS shutdown
+ExecReload=/bin/supervisorctl -c {{ supervisord_conf_location|quote }} $OPTIONS reload
+KillMode=process
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

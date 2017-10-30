@@ -1,0 +1,14 @@
+---
+- name: systemd daemon-reload and restart supervisord
+  systemd:
+    name: supervisord
+    state: restarted
+    daemon_reload: yes
+
+- name: restart supervisord
+  service:
+    name: supervisord
+    state: restarted
+
+- name: reload supervisord
+  command: "supervisorctl -c {{ supervisord_conf_location }} reload"

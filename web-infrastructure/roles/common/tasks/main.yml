@@ -1,0 +1,11 @@
+---
+- name: Install the latest version of VIM
+  package:
+    name: vim
+    state: latest
+
+- name: Install the latest version of libsemanage-python (Red Hat OS family)
+  package:
+    name: libsemanage-python
+    state: latest
+  when: ansible_os_family == "RedHat"

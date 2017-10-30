@@ -1,0 +1,16 @@
+---
+- name: enable and start haproxy
+  systemd:
+    name: haproxy
+    state: started
+    enabled: True
+
+- name: reload haproxy
+  systemd:
+    name: haproxy
+    state: reloaded
+
+- name: restart rsyslog
+  systemd:
+    name: haproxy
+    state: restarted

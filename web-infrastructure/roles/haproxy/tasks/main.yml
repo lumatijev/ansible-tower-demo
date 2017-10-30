@@ -1,0 +1,36 @@
+---
+- name: Install the latest version of HAProxy
+  become: yes
+  package:
+    name: haproxy
+    state: latest
+  notify:
+    - enable and start haproxy
+
+- name: Create directory structure for holding configurations
+  become: yes
+  file:
+    path: /etc/haproxy
+    state: directory
+
+- name: Configure HAProxy
+  become: yes
+  template:
+    src: haproxy-conf.j2
+    dest: /etc/haproxy/haproxy.cfg
+  notify:
+    - reload haproxy
+
+- name: Configure rsyslog
+  lineinfile:
+    path: /etc/rsyslog.conf
+    insertafter: "{{ item.after }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { after: "^#\\$ModLoad imudp$", line: "$ModLoad imudp" }
+    - { after: "^#\\$UDPServerRun 514$", line: "$UDPServerRun 514" }
+    - { after: "^\\$UDPServerRun 514$", line: "$UDPServerAddress 127.0.0.1" }
+    - { after: "^local7\\.\\*.*", line: "local2.=info       /var/log/haproxy-access.log" }
+    - { after: "^local2.*", line: "local2.notice      /var/log/haproxy-info.log" }
+  notify:
+    - restart rsyslog

@@ -1,0 +1,122 @@
+#!/bin/sh
+#
+# supervisord init script
+
+. /lib/lsb/init-functions
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/local/bin/supervisord
+SUPERVISORCTL=/usr/local/bin/supervisorctl
+NAME=supervisord
+DESC=supervisor
+
+test -x $DAEMON || exit 0
+
+LOGDIR=/var/log/supervisor
+PIDFILE=/var/run/$NAME.pid
+DODTIME=5
+
+if [ -f /etc/default/supervisor ] ; then
+	. /etc/default/supervisor
+fi
+
+DAEMON_OPTS="-c {{ supervisord_conf_location|quote }} $DAEMON_OPTS"
+
+set -e
+
+running_pid()
+{
+    pid=$1
+    name=$2
+    [ -z "$pid" ] && return 1
+    [ ! -d /proc/$pid ] &&  return 1
+    (cat /proc/$pid/cmdline | tr "\000" "\n" | grep -q $name) || return 1
+    return 0
+}
+
+
+running()
+{
+    [ ! -f "$PIDFILE" ] && return 1
+    pid=$(cat $PIDFILE)
+    running_pid $pid $DAEMON || return 1
+    return 0
+}
+
+force_stop() {
+    [ ! -f "$PIDFILE" ] && return
+    if running ; then
+        kill -15 $pid
+        [ -n "$DODTIME" ] && sleep "$DODTIME"s
+        if running ; then
+            kill -9 $pid
+            [ -n "$DODTIME" ] && sleep "$DODTIME"s
+            if running ; then
+                echo "Cannot kill $NAME (pid=$pid)!"
+                exit 1
+            fi
+        fi
+    fi
+    rm -f $PIDFILE
+    return 0
+}
+
+
+case "$1" in
+  start)
+	echo -n "Starting $DESC: "
+	start-stop-daemon --start --quiet --pidfile $PIDFILE \
+		--startas $DAEMON -- $DAEMON_OPTS
+	test -f $PIDFILE || sleep 1
+        if running ; then
+            echo "$NAME."
+        else
+            echo " ERROR."
+        fi
+	;;
+  stop)
+	echo -n "Stopping $DESC: "
+	start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
+	echo "$NAME."
+	;;
+  force-stop)
+	echo -n "Forcefully stopping $DESC: "
+        force_stop
+        if ! running ; then
+            echo "$NAME."
+        else
+            echo " ERROR."
+        fi
+	;;
+  force-reload)
+	start-stop-daemon --stop --test --quiet --pidfile $PIDFILE \
+        --startas $DAEMON \
+	&& $0 restart \
+	|| exit 0
+	;;
+  restart)
+    echo -n "Restarting $DESC: "
+    start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
+	[ -n "$DODTIME" ] && sleep $DODTIME
+	start-stop-daemon --start --quiet --pidfile $PIDFILE \
+		--startas $DAEMON -- $DAEMON_OPTS
+	echo "$NAME."
+	;;
+  status)
+    echo -n "$NAME is "
+    if running ;  then
+        echo "running"
+    else
+        echo " not running."
+        exit 1
+    fi
+    $SUPERVISORCTL $DAEMON_OPTS status
+    ;;
+  *)
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart|force-reload|status|force-stop}" >&2
+	exit 1
+	;;
+esac
+
+exit 0

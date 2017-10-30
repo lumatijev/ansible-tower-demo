@@ -1,0 +1,17 @@
+[program:{{ item.name }}]
+command={{ item.command }}
+autostart={{ item.auto_start | default("true") }}
+autorestart={{ item.auto_restart | default("true") }}
+startretries={{ item.start_retries | default("10") }}
+user={{ item.user }}
+directory={{ item.directory }}
+stdout_logfile={{ item.stdout_logfile }}
+stdout_logfile_maxbytes={{ item.stdout_logfile_maxbytes | default("50MB") }}
+stdout_logfile_backups={{ item.stdout_logfile_backups | default("10") }}
+{% if item.stderr_logfile %}
+stderr_logfile={{ item.stderr_logfile }}
+stderr_logfile_maxbytes={{ item.stderr_logfile_maxbytes | default("50MB") }}
+stderr_logfile_backups={{ item.stderr_logfile_backups | default("10") }}
+{% else %}
+redirect_stderr=true
+{% endif %}

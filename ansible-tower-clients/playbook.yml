@@ -1,0 +1,8 @@
+---
+- hosts: all
+  tasks:
+    - name: Insert authorized key for the 'vagrant' user
+      authorized_key:
+        user: vagrant
+        state: present
+        key: "{{ lookup('file', public_key_file) }}"

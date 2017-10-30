@@ -1,0 +1,66 @@
+---
+- name: Install the latest version of python-setuptools
+  package:
+    name: python-setuptools
+    state: latest
+
+- name: Install the latest version of supervisor
+  become: yes
+  easy_install:
+    name: supervisor
+    state: latest
+
+- name: Create directory structure for holding configurations
+  become: yes
+  file:
+    path: /etc/supervisor/conf.d
+    state: directory
+
+- name: Create directory structure for holding log files
+  become: yes
+  file:
+    path: /var/log/supervisor
+    state: directory
+
+- name: Configure supervisord
+  become: yes
+  template:
+    src: supervisord-conf.j2
+    dest: /etc/supervisor/supervisord.conf
+
+- name: Setup init script (Ubuntu OS distribution)
+  become: yes
+  template:
+    src: supervisord-init.j2
+    dest: /etc/init.d/supervisord
+    mode: 755
+  notify:
+    - restart supervisord
+  when: ansible_distribution == "Ubuntu"
+
+- name: Setup systemd service (Red Hat OS family)
+  become: yes
+  template:
+    src: supervisord-service.j2
+    dest: /etc/systemd/system/supervisord.service
+    mode: 664
+  notify:
+    - systemd daemon-reload and restart supervisord
+  when: ansible_os_family == "RedHat"
+
+- name: Start supervisord and enable it on boot
+  become: yes
+  service:
+    name: supervisord
+    enabled: yes
+    state: started
+
+- name: Configure supervisord applications
+  become: yes
+  template:
+    src: supervisord-application.j2
+    dest: "/etc/supervisor/conf.d/{{ item.name }}.conf"
+  with_items: "{{ supervisord_apps }}"
+  notify:
+    - reload supervisord
+  when: supervisord_apps is defined

@@ -1,0 +1,41 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: update system
+      yum:
+        name: "*"
+        state: latest
+      register: system_updated
+    - name: change timezone to {{ timezone }}
+      timezone:
+        name: "{{ timezone }}"
+        hwclock: UTC
+    - name: check if system is synchronized with NTP
+      shell: "timedatectl | grep 'NTP synchronized: yes'"
+      register: ntp_synchronized
+      changed_when: ntp_synchronized.rc == 1
+    - name: synchronize with NTP
+      command: "chronyc -a 'burst 4/4' && chronyc -a 'makestep'"
+      when: ntp_synchronized.rc == 1
+    - name: create .ssh directory for root user
+      file:
+        path: /root/.ssh
+        state: directory
+        owner: root
+        group: root
+        mode: 0700
+    - name: copy SSH private key for root user
+      copy:
+        src: "{{ private_key_file }}"
+        dest: /root/.ssh/id_rsa
+        owner: root
+        group: root
+        mode: 0600
+    - name: copy SSH public key for root user
+      copy:
+        src: "{{ public_key_file }}"
+        dest: /root/.ssh/id_rsa.pub
+        owner: root
+        group: root
+        mode: 0644

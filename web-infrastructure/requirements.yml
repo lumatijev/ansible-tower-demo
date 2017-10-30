@@ -1,0 +1,6 @@
+- src: geerlingguy.nginx
+  name: nginx
+- src: geerlingguy.firewall
+  name: firewall
+- src: joshualund.golang
+  name: golang

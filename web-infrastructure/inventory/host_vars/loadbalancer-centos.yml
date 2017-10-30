@@ -1,0 +1,7 @@
+---
+firewall_disable_firewalld: true
+firewall_disable_ufw: true
+firewall_allowed_tcp_ports:
+  - 22
+  - 80
+haproxy_backend_servers: "{{ groups['webservers'] }}"

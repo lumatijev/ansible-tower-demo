@@ -1,0 +1,46 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ENV["LC_ALL"] = "en_US.UTF-8"
+
+hosts = [
+  "loadbalancer-centos",
+  "webserver-ubuntu-1",
+  "webserver-ubuntu-2",
+  "webserver-ubuntu-3",
+  "webserver-ubuntu-4",
+  "webserver-centos-1",
+  "webserver-centos-2",
+  "webserver-centos-3",
+  "webserver-centos-4"
+]
+
+Vagrant.configure(2) do |config|
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  hosts.each do |host|
+    config.vm.define "#{host}" do |atc|
+      if host.include? "ubuntu"
+        atc.vm.box = "ubuntu/trusty64"
+      elsif host.include? "centos"
+        atc.vm.box = "centos/7"
+      end
+
+      atc.vm.hostname = "#{host}"
+
+      atc.vm.provider "libvirt" do |v|
+        v.driver = "kvm"
+        v.default_prefix = "demo"
+        v.memory = 384
+        v.cpus = 1
+      end
+
+      atc.vm.provision "ansible" do |a|
+        a.playbook = "playbook.yml"
+        a.extra_vars = {
+          public_key_file: "id_rsa.pub"
+        }
+      end
+    end
+  end
+end
