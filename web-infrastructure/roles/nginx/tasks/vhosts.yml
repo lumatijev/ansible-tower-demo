@@ -15,22 +15,26 @@
 - name: Add managed vhost config files.
   template:
     src: "{{ item.template|default(nginx_vhost_template) }}"
-    dest: "{{ nginx_vhost_path }}/{{ item.server_name.split(' ')[0] }}.conf"
-    force: yes
+    dest: "{{ nginx_vhost_path }}/{{ item.filename|default(item.server_name.split(' ')[0] ~ '.conf') }}"
+    force: true
     owner: root
-    group: root
+    group: "{{ root_group }}"
     mode: 0644
   when: item.state|default('present') != 'absent'
   with_items: "{{ nginx_vhosts }}"
   notify: reload nginx
+  tags:
+    - skip_ansible_lint
 
 - name: Remove managed vhost config files.
   file:
-    path: "{{ nginx_vhost_path }}/{{ item.server_name.split(' ')[0] }}.conf"
+    path: "{{ nginx_vhost_path }}/{{ item.filename|default(item.server_name.split(' ')[0] ~ '.conf') }}"
     state: absent
   when: item.state|default('present') == 'absent'
   with_items: "{{ nginx_vhosts }}"
   notify: reload nginx
+  tags:
+    - skip_ansible_lint
 
 - name: Remove legacy vhosts.conf file.
   file:
