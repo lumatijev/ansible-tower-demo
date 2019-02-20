@@ -14,7 +14,7 @@ Link to presentation: [Google Slides](https://docs.google.com/presentation/d/1II
 1. Position yourself inside ansible-tower directory and run `vagrant up`
 1. When the virtual machine is ready run `vagrant ssh`
 1. Position yourself inside ansible-tower-clients directory and run `vagrant up`
-1. [Download Go 1.9.2](https://redirector.gvt1.com/edgedl/go/go1.9.2.linux-amd64.tar.gz) and put it in the web-infrastructure/files directory
+1. [Download Go 1.11.5](https://dl.google.com/go/go1.11.5.linux-amd64.tar.gz) and put it in the web-infrastructure/files directory
 
 ### Note
 

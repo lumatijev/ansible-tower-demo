@@ -23,8 +23,9 @@ nginx_vhosts:
         proxy_set_header Host $http_host;
         proxy_pass http://127.0.0.1:8080;
       }
-go_tarball: "go1.9.2.linux-amd64.tar.gz"
-go_version_target: "go version go1.9.2 linux/amd64"
+go_tarball: "go1.11.5.linux-amd64.tar.gz"
+go_tarball_checksum: "sha256:ff54aafedff961eb94792487e827515da683d61a5f9482f668008832631e5d25"
+go_version_target: "go version go1.11.5 linux/amd64"
 set_go_path: true
 supervisord_apps:
   - {
