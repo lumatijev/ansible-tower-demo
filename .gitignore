@@ -1,6 +1,5 @@
 .vagrant
 ansible-tower-license
-playbook.retry
 id_rsa
 id_rsa.pub
 web-infrastructure/files/go*.tar.gz
